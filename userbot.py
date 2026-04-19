@@ -3,10 +3,9 @@ import os
 import re
 import shutil
 from datetime import datetime, timedelta
-from telethon import TelegramClient, events, functions, types
+from telethon import TelegramClient, events
 from telethon.tl.functions.messages import GetStickerSetRequest
 from telethon.tl.types import InputStickerSetShortName
-from telethon.tl.functions.payments import GetGiftsRequest, SendStarsGiftRequest
 from groq import Groq
 from dotenv import load_dotenv
 import urllib.request
@@ -1384,17 +1383,13 @@ async def help_command(event):
    ✅ 720p yoki eng yaxshi sifat
    ✅ Avtomatik tashlash
 
-{EMOJI['image']} **STICKER YARATISH**
-└─ `.sticer` - Rasm/Matndan sticker
-   ✅ Reply yoki Caption orqali
-   ✅ Avtomatik packga qo'shish
+{EMOJI['image']} **STICKER YARATISH (YANGI!)**
+└─ Reply + `.sticer` - 1 ta sticker yaratadi
+   Ixtiyoriy: `.sticer 😎` (emoji bilan)
+   Avtomatik sizning pack'ingizga qo'shadi
+   Sticker tagida brand: `{STICKER_BRAND_TEXT}`
 
-{EMOJI['star']} **SOVG'ALAR (YANGI!)**
-└─ `.gift` - Telegram Stars sovg'alari
-   ✅ Inline menyu orqali tanlash
-   ✅ Username orqali yuborish
-
-{EMOJI['rocket']} **ANIMATSION MATN**
+{EMOJI['rocket']} **ANIMATSION MATN (YANGI!)**
 ├─ `.animate wave Salom` - Wave effekt
 ├─ `.animate type Matn` - Typewriter effekt
 ├─ `.animate blink Matn` - Blink effekt
@@ -1440,101 +1435,6 @@ async def help_command(event):
     await event.delete()
 
 # ╔════════════════════════════════════════════╗
-# ║        GIFT SENDING (.GIFT)               ║
-# ╚════════════════════════════════════════════╝
-
-@client.on(events.NewMessage(pattern=r'\.gift'))
-async def send_gift_command(event):
-    """Telegram Stars sovg'alarini yuborish"""
-    if not is_owner(event):
-        await event.reply(f"{EMOJI['lock']} **Bu komandani faqat bot egasi ishlata oladi!**")
-        await event.delete()
-        return
-
-    try:
-        # Sovg'alar ro'yxatini olish
-        gifts_resp = await client(GetGiftsRequest())
-        gifts = gifts_resp.gifts
-        
-        if not gifts:
-            await event.reply(f"{EMOJI['warning']} **Hozircha sovg'alar mavjud emas.**")
-            await event.delete()
-            return
-
-        gift_text = f"{EMOJI['star']} **TELEGRAM SOVG'ALARI**\n━━━━━━━━━━━━━━━━━━━━━\n\n"
-        # Faqat birinchi 10-15 tasini ko'rsatamiz (limitsiz deyilgan bo'lsa ham chat sig'imi uchun)
-        for i, gift in enumerate(gifts[:15], 1):
-            gift_text += f"**{i}.** {gift.stars} {EMOJI['star']}\n"
-        
-        gift_text += f"\n{EMOJI['info']} **Sovg'a raqamini kiriting (Bekor qilish: `cancel`):**"
-        
-        status_msg = await event.reply(gift_text)
-        
-        async with client.conversation(event.chat_id, timeout=60) as conv:
-            # 1. Sovg'a tanlash
-            response = await conv.get_response()
-            if response.raw_text.lower() == 'cancel':
-                await event.reply("❌ Bekor qilindi.")
-                return
-            
-            try:
-                choice = int(response.raw_text)
-                if not (1 <= choice <= len(gifts)):
-                    raise ValueError
-                selected_gift = gifts[choice-1]
-            except (ValueError, IndexError):
-                await event.reply("⚠️ Noto'g'ri raqam. Bekor qilindi.")
-                return
-            
-            # 2. Userni so'rash
-            await event.reply(
-                f"🎁 Tanlandi: **{selected_gift.stars} Stars**\n"
-                f"👤 **Kimga yuboramiz?**\n"
-                f"└ `username` yoki `ID` kiriting\n"
-                f"└ O'zingizga bo'lsa `own` deb yozing:"
-            )
-            
-            user_response = await conv.get_response()
-            target = user_response.raw_text.strip()
-            
-            if target.lower() == 'own':
-                target_user = await client.get_me()
-            else:
-                try:
-                    target_user = await client.get_entity(target)
-                except Exception as e:
-                    await event.reply(f"❌ Foydalanuvchi topilmadi: `{str(e)}`")
-                    return
-
-            # 3. Sovg'a yuborish
-            await event.reply(f"🚀 **Yuborilmoqda...**\nKimga: `{target_user.id}`")
-            
-            try:
-                await client(SendStarsGiftRequest(
-                    user_id=target_user.id,
-                    gift_id=selected_gift.id
-                ))
-                
-                await event.reply(
-                    f"{EMOJI['success']} **SOVG'A MUVAFFAQIYATLI YUBORILDI!**\n"
-                    f"━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                    f"👤 **Qabul qiluvchi:** {target_user.first_name}\n"
-                    f"⭐ **Narxi:** `{selected_gift.stars}` Stars\n"
-                    f"🎁 **Sovg'a ID:** `{selected_gift.id}`"
-                )
-            except Exception as e:
-                await event.reply(
-                    f"{EMOJI['error']} **YUBORISHDA XATOLIK!**\n"
-                    f"━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                    f"`{str(e)}`"
-                )
-
-    except Exception as e:
-        await event.reply(f"{EMOJI['error']} **Kutilmagan xatolik:** `{str(e)}`")
-    finally:
-        await event.delete()
-
-# ╔════════════════════════════════════════════╗
 # ║        STICKER MAKER (.STICER)            ║
 # ╚════════════════════════════════════════════╝
 
@@ -1547,19 +1447,11 @@ async def make_sticker(event):
         return
 
     reply_msg = await event.get_reply_message()
-    
-    # Media manbasini aniqlash: reply yoki xabarning o'zi
-    media_source = None
-    if reply_msg and (reply_msg.media or reply_msg.raw_text):
-        media_source = reply_msg
-    elif event.media:
-        media_source = event
-    
-    if not media_source:
+    if not reply_msg:
         await event.reply(
             f"{EMOJI['error']} **XATOLIK**\n"
             f"━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"Rasm yoki matnga reply qiling yoki rasmga `.sticer` deb yozing."
+            f"Rasm yoki matnga reply qilib `.sticer` yozing."
         )
         await event.delete()
         return
@@ -1580,15 +1472,15 @@ async def make_sticker(event):
     pack_title = get_sticker_pack_title()
 
     try:
-        if media_source.media:
-            input_path = await media_source.download_media(file=temp_folder)
+        if reply_msg.media:
+            input_path = await reply_msg.download_media(file=temp_folder)
             if not input_path:
                 raise RuntimeError("Media yuklab olinmadi.")
             await asyncio.to_thread(prepare_sticker_from_image, input_path, sticker_path)
-        elif media_source.raw_text:
-            await asyncio.to_thread(prepare_sticker_from_text, media_source.raw_text, sticker_path)
+        elif reply_msg.raw_text:
+            await asyncio.to_thread(prepare_sticker_from_text, reply_msg.raw_text, sticker_path)
         else:
-            raise RuntimeError("Media yoki matn topilmadi.")
+            raise RuntimeError("Reply xabarida media yoki matn topilmadi.")
 
         exists = await sticker_pack_exists(pack_name)
         before_count = await get_sticker_pack_count(pack_name) if exists else 0
@@ -1735,8 +1627,7 @@ async def store_message_history(event):
 @client.on(events.MessageEdited)
 async def track_message_edit(event):
     """Xabar tahrirlangani kuzatish"""
-    # event.out True bo'lsa (o'zimiz edit qilsak) ignore qilamiz
-    if event.out:
+    if not event.is_private:
         return
     
     try:
@@ -1752,34 +1643,17 @@ async def track_message_edit(event):
         
         if original_text == edited_text:
             return
-
-        # Sender bot emasligini tekshirish
+        
         try:
             sender = await client.get_entity(sender_id)
-            if hasattr(sender, 'bot') and sender.bot:
-                return # Bot bo'lsa ignore
-            user_name = (sender.first_name or "") + (" " + (sender.last_name or "") if hasattr(sender, 'last_name') and sender.last_name else "")
-            if not user_name.strip():
-                user_name = sender.username or str(sender_id)
+            user_name = sender.first_name if hasattr(sender, 'first_name') else str(sender_id)
         except Exception:
             user_name = f"Foydalanuvchi ({sender_id})"
         
-        # Chat nomi
-        chat_info = "Private"
-        if not event.is_private:
-            try:
-                entity = await event.get_chat()
-                chat_info = entity.title or "Guruh"
-            except Exception:
-                chat_info = "Guruh"
-
-        # Menga (egaga) habar berish
-        await client.send_message(
-            YOUR_USER_ID,
+        await event.reply(
             f"{EMOJI['edit']} **XABAR TAHRIRLANDI**\n"
             f"━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-            f"👤 **Kim:** {user_name}\n"
-            f"💬 **Chat:** {chat_info}\n\n"
+            f"👤 **Nomi:** {user_name}\n\n"
             f"📝 **Asl matn:**\n`{original_text}`\n\n"
             f"✏️ **Yangi matn:**\n`{edited_text}`"
         )
@@ -1931,9 +1805,7 @@ async def main():
 ║  ✅ Auto-save media (bitta chatdan)                ║
 ║  ✅ Edit tracking (tahrirlash kuzatish)            ║
 ║  ✅ .help komandasi GIF bilan                      ║
-║  ✅ Video Download (.down komandasi)               ║
-║  ✅ .gift - Telegram Stars sovg'alari      ⭐ YANGI ║
-║  ✅ .sticer - Rasm/Matndan sticker                 ║
+║  ✅ Video Download (.down komandasi)      ⭐ YANGI ║
 ║  ✅ Statistika va boshqa xususiyatlar              ║
 ╚══════════════════════════════════════════════════════╝
     """)
@@ -1956,17 +1828,16 @@ async def main():
         print("\n   💾 MEDIA SAQLASH:")
         print("      • .save - Reply qilgan media saqlash")
         print("      • .autosave on/off - Avtomatik saqlash")
-        print("\n   📥 VIDEO YUKLASH:")
+        print("\n   📥 VIDEO YUKLASH (YANGI!):")
         print("      • .down <URL> - Video linki orqali yuklab olish")
-        print("\n   ⭐ SOVG'ALAR (YANGI!):")
-        print("      • .gift - Telegram Stars sovg'alari")
-        print("      • Interaktiv tanlash va yuborish")
-        print("\n   🖼️ STICKER YARATISH:")
-        print("      • .sticer - Rasm/Matndan sticker yaratish")
-        print("      • Reply yoki Caption orqali")
+        print("      • Masalan: .down https://www.youtube.com/watch?v=...")
+        print("      • Qollash: YouTube, Instagram, TikTok va boshqa")
+        print("\n   🖼️ STICKER YARATISH (YANGI!):")
+        print("      • Reply + .sticer - 1 ta sticker yaratish")
+        print("      • .sticer 😎 - Emoji bilan sticker")
         print("      • Sticker avtomatik packga qo'shiladi")
         print(f"      • Brand watermark: {STICKER_BRAND_TEXT}")
-        print("\n   ✨ ANIMATSIYA:")
+        print("\n   ✨ ANIMATSIYA (YANGI!):")
         print("      • .animate wave Salom - Wave effekt")
         print("      • .animate type Matn - Typewriter")
         print("      • .animate blink Matn - Blink")
