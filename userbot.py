@@ -3,10 +3,9 @@ import os
 import re
 import shutil
 from datetime import datetime, timedelta
-from telethon import TelegramClient, events, functions, types
+from telethon import TelegramClient, events
 from telethon.tl.functions.messages import GetStickerSetRequest
 from telethon.tl.types import InputStickerSetShortName
-from telethon.tl.functions.payments import GetStarGiftsRequest, GetPaymentFormRequest, SendPaymentFormRequest
 from groq import Groq
 from dotenv import load_dotenv
 import urllib.request
@@ -134,45 +133,40 @@ AVAILABLE_MODELS = {
     "3": {"name": "gemma2-9b-it", "desc": "Yaxshi muvozanat"}
 }
 
-# EMOJI DICTIONARY (PREMIUM STYLE)
+# EMOJI DICTIONARY
 EMOJI = {
-    "success": "💎",
+    "success": "✅",
     "user": "👤",
-    "error": "🚫",
-    "info": "�",
+    "error": "❌",
+    "info": "📌",
     "warning": "⚠️",
-    "ai": "�",
+    "ai": "🤖",
     "chat": "💬",
     "group": "👥",
-    "private": "�",
+    "private": "🔒",
     "stats": "📊",
-    "settings": "🛠️",
-    "time": "🕒",
+    "settings": "⚙️",
+    "time": "⏰",
     "star": "⭐",
     "fire": "🔥",
     "crown": "👑",
     "lock": "🔒",
-    "save": "�",
-    "edit": "📝",
+    "save": "💾",
+    "edit": "✏️",
     "reply": "↩️",
-    "download": "⚡",
+    "download": "📥",
     "upload": "📤",
     "heart": "❤️",
     "rocket": "🚀",
     "gear": "⚙️",
-    "folder": "�",
+    "folder": "📁",
     "file": "📄",
     "video": "🎬",
     "image": "🖼️",
     "music": "🎵",
     "document": "📑",
-    "loading": "🌀",
-    "check": "✅",
-    "gift": "🎁",
-    "money": "💸",
-    "sparkles": "✨",
-    "search": "🔍",
-    "globe": "🌐"
+    "loading": "⏳",
+    "check": "✔️"
 }
 
 # ╔════════════════════════════════════════════╗
@@ -1355,50 +1349,71 @@ async def sticker_pack_info_command(event):
 
 @client.on(events.NewMessage(pattern=r'\.help'))
 async def help_command(event):
-    """GIF bilan yordam habarini yuborish (PREMIUM)"""
+    """GIF bilan yordam habarini yuborish"""
     if not is_owner(event):
         await event.reply(f"{EMOJI['lock']} **Bu komandani faqat bot egasi ishlata oladi!**")
         await event.delete()
         return
     
     help_text = f"""
-{EMOJI['crown']} **DavlatyorUZ UserBot v8.0**
+{EMOJI['crown']} **DavlatyorUZ UserBot v8.0 (MUKAMMAL)**
 ━━━━━━━━━━━━━━━━━━━━
 
-{EMOJI['ai']} **AI & ASSISTANT**
-├─ `.onai` / `.offai` - AI tizimi
-└─ `.chatai on/off` - Chat nazorati
 
-{EMOJI['time']} **STATUS & MODE**
-├─ `.bandman on/off` - Avto-javob
-└─ `.bandman on [msg]` - Shaxsiy
+{EMOJI['ai']} **AI AVTO-JAVOB**
+├─ `.onai` - Yoqish
+├─ `.offai` - O'chirish
+└─ `.chatai on/off` - Chat uchun alohida
 
-{EMOJI['save']} **MEDIA TOOLS**
-├─ `.save` - Reply orqali saqlash
-├─ `.autosave on/off` - Avtomatik
-└─ `.down <URL>` - Video yuklash
+{EMOJI['time']} **BANDMAN REJIMI**
+├─ `.bandman on` - Yoqish
+├─ `.bandman off` - O'chirish
+└─ `.bandman on [xabar]` - Shaxsiy xabar
 
-{EMOJI['star']} **PREMIUM FEATURES**
-├─ `.gift` - Star Gifts (Stars)
-├─ `.sticer` - Rasm/Matndan sticker
-├─ `.tr <lang>` - AI Tarjima
-└─ `.whois` - User info
+{EMOJI['save']} **MEDIA SAQLASH**
+├─ `.save` - Reply qilgan media saqlash
+├─ `.autosave on` - Avtomatik saqlash
+└─ `.autosave off` - O'chirish
 
-{EMOJI['rocket']} **EFFECTS & FUN**
-├─ `.animate <type> <text>`
-├─ `.love` - Love animatsiya
-├─ `.sd <sec> <text>` - Self-delete
-└─ `.tagall` - Guruhni chaqirish
+{EMOJI['download']} **VIDEO YUKLAB OLISH (YANGI!)**
+└─ `.down <URL>` - Video linkini yuklab olish
+   Masalan: `.down https://www.youtube.com/watch?v=...`
+   
+   ✅ YouTube, Instagram, TikTok va boshqa saytlar
+   ✅ 720p yoki eng yaxshi sifat
+   ✅ Avtomatik tashlash
 
-{EMOJI['settings']} **CONTROL CENTER**
-├─ `.ping` / `.uptime` - Status
-├─ `.models` / `.model <id>`
-├─ `.stats` - Bot statistikasi
-└─ `.cleanup` / `.reset`
+{EMOJI['image']} **STICKER YARATISH (YANGI!)**
+└─ Reply + `.sticer` - 1 ta sticker yaratadi
+   Ixtiyoriy: `.sticer 😎` (emoji bilan)
+   Avtomatik sizning pack'ingizga qo'shadi
+   Sticker tagida brand: `{STICKER_BRAND_TEXT}`
 
-{EMOJI['lock']} **OWNER ACCESS ONLY**
-━━━━━━━━━━━━━━━━━━━━
-✨ *Powered by DavlatyorUZ*
+{EMOJI['rocket']} **ANIMATSION MATN (YANGI!)**
+├─ `.animate wave Salom` - Wave effekt
+├─ `.animate type Matn` - Typewriter effekt
+├─ `.animate blink Matn` - Blink effekt
+└─ `.animate loading Yuklanmoqda` - Loading effekt
+
+{EMOJI['heart']} **LOVE ANIMATSIYA (YANGI!)**
+└─ `.love` - Maxsus yurakli love animatsiya
+
+{EMOJI['stats']} **MONITORING (YANGI!)**
+├─ `.ping` - Tezlik/latency
+├─ `.uptime` - Ishlash vaqti
+└─ `.packinfo` - Sticker pack holati
+
+{EMOJI['settings']} **MODEL BOSHQARUVI**
+├─ `.models` - Barcha modellar
+├─ `.model 1` - Model tanlash
+└─ `.stats` - Statistika
+
+{EMOJI['edit']} **EDIT TRACKING**
+└─ Xabar tahrirlansa asl matn ko'rinadi
+
+{EMOJI['lock']} **FAQAT SIZ ISHLATA OLASIZ!**
+━━━━━━━━━━━━━━━━━━━━━
+⚡ Version 8.0 | 🚀 Fully Featured
     """
     
     try:
@@ -1538,265 +1553,6 @@ async def make_sticker(event):
             pass
 
 # ╔════════════════════════════════════════════╗
-# ║        GIFT SENDING (.GIFT)               ║
-# ╚════════════════════════════════════════════╝
-
-@client.on(events.NewMessage(pattern=r'\.gift'))
-async def send_gift_command(event):
-    """Telegram Stars sovg'alarini yuborish (PRO)"""
-    if not is_owner(event):
-        await event.reply(f"{EMOJI['lock']} **Bu komandani faqat bot egasi ishlata oladi!**")
-        await event.delete()
-        return
-
-    status_msg = await event.reply(f"{EMOJI['loading']} **SOVG'ALAR RO'YXATI OLINMOQDA...**")
-    
-    try:
-        # Sovg'alar ro'yxatini olish
-        gifts_resp = await client(GetStarGiftsRequest(hash=0))
-        
-        if not hasattr(gifts_resp, 'gifts') or not gifts_resp.gifts:
-            await status_msg.edit(f"{EMOJI['warning']} **Hozircha sovg'alar mavjud emas.**")
-            await event.delete()
-            return
-
-        gifts = gifts_resp.gifts
-        gift_text = (
-            f"🎁 **TELEGRAM PREMIUM SOVG'ALARI**\n"
-            f"━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-        )
-        
-        # Max 20 gifts to avoid long message
-        for i, gift in enumerate(gifts[:20], 1):
-            sold_out = " (Tugagan)" if getattr(gift, 'sold_out', False) else ""
-            gift_text += f"**{i:02d}.** 🌟 `{gift.stars}` Stars{sold_out}\n"
-        
-        gift_text += (
-            f"\n━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"🔢 **Raqamni kiriting yoki `cancel` deb yozing:**"
-        )
-        
-        await status_msg.edit(gift_text)
-        
-        async with client.conversation(event.chat_id, timeout=60) as conv:
-            # 1. Sovg'a tanlash
-            choice_resp = await conv.get_response()
-            if choice_resp.raw_text.lower() == 'cancel':
-                await event.reply("❌ **Bekor qilindi.**")
-                return
-            
-            try:
-                choice = int(choice_resp.raw_text)
-                if not (1 <= choice <= len(gifts)):
-                    raise ValueError
-                selected_gift = gifts[choice-1]
-            except (ValueError, IndexError):
-                await event.reply("⚠️ **Noto'g'ri raqam! Bekor qilindi.**")
-                return
-            
-            # 2. Qabul qiluvchini aniqlash
-            await event.reply(
-                f"✨ **Tanlandi:** `{selected_gift.stars}` Stars\n"
-                f"👤 **Kimga yuboramiz?**\n\n"
-                f"📌 `username` yoki `ID` kiriting\n"
-                f"🏠 O'zingizga bo'lsa: `own`"
-            )
-            
-            user_resp = await conv.get_response()
-            target_str = user_resp.raw_text.strip()
-            
-            if target_str.lower() == 'own':
-                target_user = await client.get_me()
-            else:
-                try:
-                    target_user = await client.get_entity(target_str)
-                except Exception as e:
-                    await event.reply(f"❌ **Foydalanuvchi topilmadi:** `{str(e)}`")
-                    return
-
-            # 3. To'lov va yuborish
-            progress_msg = await event.reply(f"🚀 **Sovg'a yuborish jarayoni boshlandi...**")
-            
-            try:
-                # To'lov formasini olish
-                invoice = types.InputInvoiceStarGift(
-                    peer=target_user,
-                    gift_id=selected_gift.id
-                )
-                
-                payment_form = await client(GetPaymentFormRequest(invoice=invoice))
-                
-                # Sovg'ani yuborish (to'lash)
-                result = await client(SendPaymentFormRequest(
-                    form_id=payment_form.form_id,
-                    invoice=payment_form.invoice,
-                    credentials=types.InputPaymentCredentialsSaved(id="", tmp_password="")
-                ))
-                
-                await progress_msg.edit(
-                    f"{EMOJI['success']} **SOVG'A MUVAFFAQIYATLI YUBORILDI!**\n"
-                    f"━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                    f"👤 **Kimga:** {target_user.first_name}\n"
-                    f"🌟 **Narxi:** `{selected_gift.stars}` Stars\n"
-                    f"🎁 **Sovg'a ID:** `{selected_gift.id}`\n\n"
-                    f"✨ *Xabaringiz qabul qilindi!*"
-                )
-                
-            except Exception as e:
-                await progress_msg.edit(
-                    f"{EMOJI['error']} **YUBORISHDA XATOLIK!**\n"
-                    f"━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                    f"`{str(e)}`"
-                )
-
-    except Exception as e:
-        await event.reply(f"{EMOJI['error']} **XATOLIK:** `{str(e)}`")
-    finally:
-        await event.delete()
-
-# ╔════════════════════════════════════════════╗
-# ║        WHOIS INFO (.WHOIS)                ║
-# ╚════════════════════════════════════════════╝
-
-@client.on(events.NewMessage(pattern=r'\.whois(?:\s+(.+))?'))
-async def whois_user(event):
-    """Foydalanuvchi haqida to'liq ma'lumot"""
-    if not is_owner(event):
-        await event.reply(f"{EMOJI['lock']} **Bu komandani faqat bot egasi ishlata oladi!**")
-        await event.delete()
-        return
-
-    target = event.pattern_match.group(1)
-    if not target:
-        reply = await event.get_reply_message()
-        if reply:
-            target = reply.sender_id
-        else:
-            target = "me"
-
-    try:
-        user = await client.get_entity(target)
-        full_user = await client(functions.users.GetFullUserRequest(id=user.id))
-        
-        user_id = user.id
-        first_name = user.first_name or "Noma'lum"
-        last_name = user.last_name or ""
-        username = f"@{user.username}" if user.username else "Mavjud emas"
-        is_bot = "Ha" if user.bot else "Yo'q"
-        bio = full_user.full_user.about or "Mavjud emas"
-        
-        info_text = (
-            f"{EMOJI['user']} **FOYDALANUVCHI MA'LUMOTI**\n"
-            f"━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"🆔 **ID:** `{user_id}`\n"
-            f"👤 **Ism:** {first_name} {last_name}\n"
-            f"🔗 **Username:** {username}\n"
-            f"🤖 **Bot:** {is_bot}\n"
-            f"📝 **Bio:** {bio}\n"
-            f"━━━━━━━━━━━━━━━━━━━━━━━━━"
-        )
-        await event.reply(info_text)
-    except Exception as e:
-        await event.reply(f"{EMOJI['error']} **XATOLIK:** `{str(e)}`")
-    
-    await event.delete()
-
-# ╔════════════════════════════════════════════╗
-# ║        SELF DESTRUCT (.SD)                ║
-# ╚════════════════════════════════════════════╝
-
-@client.on(events.NewMessage(pattern=r'\.sd\s+(\d+)\s+(.+)'))
-async def self_destruct(event):
-    """O'z-o'zini o'chiruvchi xabar"""
-    if not is_owner(event):
-        return
-
-    seconds = int(event.pattern_match.group(1))
-    text = event.pattern_match.group(2)
-    
-    await event.delete()
-    msg = await client.send_message(event.chat_id, f"{text}\n\n⏱ *Bu xabar {seconds} soniyadan keyin o'chadi.*")
-    
-    await asyncio.sleep(seconds)
-    await msg.delete()
-
-# ╔════════════════════════════════════════════╗
-# ║        TRANSLATION (.TR)                  ║
-# ╚════════════════════════════════════════════╝
-
-@client.on(events.NewMessage(pattern=r'\.tr\s+([a-z]{2})'))
-async def translate_ai(event):
-    """Xabarni Groq AI orqali tarjima qilish"""
-    if not is_owner(event):
-        await event.reply(f"{EMOJI['lock']} **Bu komandani faqat bot egasi ishlata oladi!**")
-        await event.delete()
-        return
-
-    lang = event.pattern_match.group(1)
-    reply = await event.get_reply_message()
-    
-    if not reply or not reply.raw_text:
-        await event.reply(f"{EMOJI['error']} **Matnga reply qiling!**")
-        await event.delete()
-        return
-
-    status_msg = await event.reply(f"{EMOJI['globe']} **Tarjima qilinmoqda...**")
-    
-    prompt = f"Translate the following text to language code '{lang}'. Only provide the translated text: {reply.raw_text}"
-    
-    try:
-        completion = groq_client.chat.completions.create(
-            model=current_model,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.3
-        )
-        translated_text = completion.choices[0].message.content
-        
-        await status_msg.edit(
-            f"{EMOJI['globe']} **TARJIMA ({lang.upper()})**\n"
-            f"━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-            f"{translated_text}"
-        )
-    except Exception as e:
-        await status_msg.edit(f"{EMOJI['error']} **XATOLIK:** `{str(e)}`")
-    
-    await event.delete()
-
-# ╔════════════════════════════════════════════╗
-# ║        TAG ALL (.TAGALL)                  ║
-# ╚════════════════════════════════════════════╝
-
-@client.on(events.NewMessage(pattern=r'\.tagall(?:\s+(.+))?'))
-async def tag_all(event):
-    """Guruhda barcha foydalanuvchilarni chaqirish"""
-    if not is_owner(event):
-        return
-
-    if event.is_private:
-        await event.reply(f"{EMOJI['error']} **Bu komanda faqat guruhlarda ishlaydi!**")
-        await event.delete()
-        return
-
-    msg_text = event.pattern_match.group(1) or "Hamma diqqatiga!"
-    
-    status_msg = await event.reply(f"{EMOJI['loading']} **Chaqirilmoqda...**")
-    
-    mentions = ""
-    count = 0
-    async for user in client.iter_participants(event.chat_id):
-        if user.bot:
-            continue
-        mentions += f"[\u2063](tg://user?id={user.id})"
-        count += 1
-        if count % 5 == 0:
-            await client.send_message(event.chat_id, f"{msg_text}{mentions}")
-            mentions = ""
-            await asyncio.sleep(1.5) # Spamdan qochish uchun
-
-    await status_msg.delete()
-    await event.delete()
-
-# ╔════════════════════════════════════════════╗
 # ║        UTILITY & SYSTEM COMMANDS           ║
 # ╚════════════════════════════════════════════╝
 
@@ -1870,8 +1626,8 @@ async def store_message_history(event):
 
 @client.on(events.MessageEdited)
 async def track_message_edit(event):
-    """Xabar tahrirlangani kuzatish (PRO)"""
-    if event.out:
+    """Xabar tahrirlangani kuzatish"""
+    if not event.is_private:
         return
     
     try:
@@ -1887,34 +1643,17 @@ async def track_message_edit(event):
         
         if original_text == edited_text:
             return
-
-        # Sender bot emasligini tekshirish
+        
         try:
             sender = await client.get_entity(sender_id)
-            if hasattr(sender, 'bot') and sender.bot:
-                return
-            user_name = (sender.first_name or "") + (" " + (sender.last_name or "") if hasattr(sender, 'last_name') and sender.last_name else "")
-            if not user_name.strip():
-                user_name = sender.username or str(sender_id)
+            user_name = sender.first_name if hasattr(sender, 'first_name') else str(sender_id)
         except Exception:
             user_name = f"Foydalanuvchi ({sender_id})"
         
-        # Chat nomi
-        chat_info = "Private"
-        if not event.is_private:
-            try:
-                entity = await event.get_chat()
-                chat_info = entity.title or "Guruh"
-            except Exception:
-                chat_info = "Guruh"
-
-        # Egaga xabar berish
-        await client.send_message(
-            YOUR_USER_ID,
+        await event.reply(
             f"{EMOJI['edit']} **XABAR TAHRIRLANDI**\n"
             f"━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-            f"👤 **Kim:** {user_name}\n"
-            f"💬 **Chat:** {chat_info}\n\n"
+            f"👤 **Nomi:** {user_name}\n\n"
             f"📝 **Asl matn:**\n`{original_text}`\n\n"
             f"✏️ **Yangi matn:**\n`{edited_text}`"
         )
@@ -2054,28 +1793,72 @@ async def auto_reply(event):
 # ╚════════════════════════════════════════════╝
 
 async def main():
-    """Userbotni ishga tushirish (PREMIUM)"""
-    print(f"""
+    """Userbotni ishga tushirish"""
+    print("""
 ╔══════════════════════════════════════════════════════╗
-║     {EMOJI['crown']} DavlatyorUZ UserBot v8.0 (PREMIUM)          ║
+║     🤖 DavlatyorUZ UserBot v8.0 (MUKAMMAL VERSIYA)     ║
 ╠══════════════════════════════════════════════════════╣
-║  {EMOJI['ai']} AI Assistant Engine           : ONLINE       ║
-║  {EMOJI['star']} Star Gifts (Stars)           : READY        ║
-║  {EMOJI['time']} Bandman Auto-reply          : ACTIVE       ║
-║  {EMOJI['save']} Media Cloud Save            : ENABLED      ║
-║  {EMOJI['edit']} Edit Message Tracker        : MONITORING   ║
-║  {EMOJI['download']} Video Downloader             : CONNECTED    ║
-║  {EMOJI['sparkles']} Premium UI & Effects        : LOADED       ║
+║  ✅ AI Auto-reply (Private + Groups)               ║
+║  ✅ Per-chat AI control                            ║
+║  ✅ Bandman rejimi (DEFAULT ON)                    ║
+║  ✅ Media Save (.save komandasi)                   ║
+║  ✅ Auto-save media (bitta chatdan)                ║
+║  ✅ Edit tracking (tahrirlash kuzatish)            ║
+║  ✅ .help komandasi GIF bilan                      ║
+║  ✅ Video Download (.down komandasi)      ⭐ YANGI ║
+║  ✅ Statistika va boshqa xususiyatlar              ║
 ╚══════════════════════════════════════════════════════╝
     """)
     
-    print(f"{EMOJI['rocket']} Userbot muvaffaqiyatli ishga tushdi!")
-    print(f"{EMOJI['user']} Bot egasi ID: {YOUR_USER_ID}")
-    print(f"{EMOJI['ai']} Joriy AI model: {current_model}")
-    print(f"{EMOJI['sparkles']} .help buyrug'ini yozib ko'ring!")
-    
+    print("🚀 Userbot ishga tushmoqda...")
     try:
         await client.start()
+        print("✅ Userbot muvaffaqiyatli ishga tushdi!")
+        print(f"👤 Bot egasi ID: {YOUR_USER_ID}")
+        print(f"🤖 Joriy AI model: {current_model}")
+        print(f"🎬 .help GIF URL: {'✅ O\'rnatilgan' if HELP_GIF_URL else '❌ O\'rnatilmagan (ixtiyoriy)'}")
+        
+        print("\n" + "="*60)
+        print("📝 ASOSIY KOMANDALAR:")
+        print("="*60)
+        print("   🤖 AI REJIMI:")
+        print("      • .onai - AI yoqish")
+        print("      • .offai - AI o'chirish")
+        print("      • .chatai on/off - Chat uchun alohida")
+        print("\n   💾 MEDIA SAQLASH:")
+        print("      • .save - Reply qilgan media saqlash")
+        print("      • .autosave on/off - Avtomatik saqlash")
+        print("\n   📥 VIDEO YUKLASH (YANGI!):")
+        print("      • .down <URL> - Video linki orqali yuklab olish")
+        print("      • Masalan: .down https://www.youtube.com/watch?v=...")
+        print("      • Qollash: YouTube, Instagram, TikTok va boshqa")
+        print("\n   🖼️ STICKER YARATISH (YANGI!):")
+        print("      • Reply + .sticer - 1 ta sticker yaratish")
+        print("      • .sticer 😎 - Emoji bilan sticker")
+        print("      • Sticker avtomatik packga qo'shiladi")
+        print(f"      • Brand watermark: {STICKER_BRAND_TEXT}")
+        print("\n   ✨ ANIMATSIYA (YANGI!):")
+        print("      • .animate wave Salom - Wave effekt")
+        print("      • .animate type Matn - Typewriter")
+        print("      • .animate blink Matn - Blink")
+        print("      • .animate loading Yuklanmoqda - Loading")
+        print("      • .love - Maxsus love animatsiyasi")
+        print("\n   📊 MONITORING:")
+        print("      • .ping - Bot latency")
+        print("      • .uptime - Ishlash vaqti")
+        print("      • .packinfo - Sticker pack holati")
+        print("\n   ⏰ BANDMAN REJIMI:")
+        print("      • .bandman on/off - Bandman yoqish/o'chirish")
+        print("      • .bandman on [xabar] - Shaxsiy xabar")
+        print("\n   ⚙️ BOSHQA:")
+        print("      • .models - Barcha modellar")
+        print("      • .model 1 - Model tanlash")
+        print("      • .stats - Statistika")
+        print("      • .help - Yordam (GIF bilan)")
+        print("      • .reset - To'liq reset")
+        print("      • .cleanup - Temp fayllarni tozalash")
+        print("="*60 + "\n")
+        
         await client.run_until_disconnected()
     except Exception as e:
         print(f"❌ Xatolik: {e}")
